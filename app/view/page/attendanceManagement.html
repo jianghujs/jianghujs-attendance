@@ -1,204 +1,200 @@
-{% extends 'template/jhTemplateV3.html'%}
+{% extends 'template/jhTemplateV4.html'%}
 
-{% block vue_template %}
+{% block vueTemplate %}
 
-<jh-layout-v3>
+<script type="text/html" id="app-template">
+<div>
+<v-app id="inspire" mobile-breakpoint="sm">
+  <jhMenu/>
+  <v-main class="d-flex flex-column" style="margin-top: 60px">
+    <!-- 头部内容 >>>>>>>>>>>>> -->
+    <div class="pageSecondBar d-flex px-8">
+      <div>
+        <div class="appTitle pt-3" style="font-size: 18px; font-weight: 700">{{ breadcrumbs[1].fullText }}
+          <!-- 帮助页按钮 -->
+          <v-icon @click="isHelpPageDrawerShow = true" small>mdi-help-circle-outline</v-icon>
+        </div>
+        <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+      </div>
+    </div>
+    <!-- <<<<<<<<<<<<< 头部内容 -->
+    <!-- 页面主要内容 -->
+    <div class="pageBodyContainer px-8" style="flex: 1;">
+      <!-- 页面内容 >>>>>>>>>>>>> -->
+      <v-container class="fullScreen d-flex flex-column pa-xs-0 pa-0">
+        <v-card>
+          <v-row class="ma-0 pa-xs-4 align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
 
-<!-- 页面主要内容 -->
-<v-container class="fullScreen d-flex flex-column pa-xs-0 pa-0">
-  <v-card>
-  <v-row class="ma-0 pa-xs-4 align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
+            <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pl-0">
 
-      <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pl-0">
-    
-        <span class="body-2">共{{ tableData.length }}条记录</span>
-      </v-col>
+              <span class="body-2">共{{ tableData.length }}条记录</span>
+            </v-col>
 
-      <v-spacer></v-spacer>
+            <v-spacer></v-spacer>
 
-      <v-col cols="12" xs="3" sm="3" md="2" xl="2" class="pa-xs-0 pa-xs-2 col-sm-8-flex">
-        <v-text-field v-model="searchInput" label="表格过滤" class="cus-v-input" dense filled single-line></v-text-field>
-      </v-col>
-    </v-row>
-    <v-data-table fixed-header
-                  :headers="headers"
-                  hide-default-header
-                  :items="tableData"
-                  :search="searchInput"
-                  :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
-                  :items-per-page="20"
-                  mobile-breakpoint="0"
-                  :loading="isTableLoading"
-                  checkbox-color="success"
-                  class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
-     
-                  <template slot="header" :headers="headers">
-                    <thead>
-                        <tr>
-                            <th v-if="!header.value.includes('lesson')" v-for="header in headers" :key="header.text">
-                                {{ header.text }}
-                            </th>
-                            <th v-else :key="header.text">
-                              <span :title="header.courseName" @click="doUiAction('viewCourseDetail', {item: header})" style="cursor:pointer; font-weight: bold;color: black">{{ header.courseName }}</span>
-                          </th>
-                        </tr>
-                    </thead>
-                  </template>
+            <v-col cols="12" xs="3" sm="3" md="2" xl="2" class="pa-xs-0 pa-xs-2 col-sm-8-flex">
+              <v-text-field v-model="searchInput" label="表格过滤" class="cus-v-input" dense filled single-line></v-text-field>
+            </v-col>
+          </v-row>
+          <v-data-table :headers="headers"
+                        hide-default-header
+                        :items="tableData"
+                        :search="searchInput"
+                        :search="searchInput" :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
+                        :items-per-page="20"
+                        mobile-breakpoint="0"
+                        :loading="isTableLoading"
+                        :class="{'zebraLine': showTableZebraLine }"
+                        checkbox-color="success"
+                        fixed-header
+                        class="fixed-table-height elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
 
-                  <template v-for="(cItem, index) in constantCollection.courseList" :slot="'item.lesson_' + cItem.courseId" slot-scope="{ item }">
-                    <div class="d-flex">
-                      <v-select
-                        :loading="item['loading_' + cItem.courseId]"
-                        :disabled="item['loading_' + cItem.courseId]"
-                        v-if="item['lesson_' + cItem.courseId]"
-                        :items="constantCollection.attendanceStatus"
-                        style="width: 90px; max-width: 90px;"
-                        dense filled single-line
-                        class="cus-v-input"
-                        v-model="item['lesson_' + cItem.courseId]"
-                        @change="doUiAction('updateAttendanceStatus', {item, number: cItem.courseId, courseId: cItem.courseId})"
-                      ></v-select>
-                      <!-- 非正常出勤显示备注按钮 -->
-                      <v-btn v-if="item['lesson_' + cItem.courseId] && item['lesson_' + cItem.courseId] !== '出勤'" icon @click="doUiAction('showRemark', {item, number: cItem.courseId, courseId: cItem.courseId})">
-                        <v-icon>mdi-comment-text-outline</v-icon>
-                      </v-btn>
-                    </div>
-                  </template>
+            <template slot="header" :headers="headers">
+              <thead>
+              <tr>
+                <th v-if="!header.value.includes('lesson')" v-for="header in headers" :key="header.text">
+                  {{ header.text }}
+                </th>
+                <th v-else :key="header.text">
+                  <span :title="header.courseName" @click="doUiAction('viewCourseDetail', header)" style="cursor:pointer; font-weight: bold;color: black">{{ header.courseName }}</span>
+                </th>
+              </tr>
+              </thead>
+            </template>
 
-    </v-data-table>
-  </v-card>
-</v-container>
+            <template v-for="(cItem, index) in constantCollection.courseList" :slot="'item.lesson_' + cItem.courseId" slot-scope="{ item }">
+              <div class="d-flex">
+                <v-select
+                    :loading="item['loading_' + cItem.courseId]"
+                    :disabled="item['loading_' + cItem.courseId]"
+                    v-if="item['lesson_' + cItem.courseId]"
+                    :items="constantCollection.attendanceStatus"
+                    style="width: 90px; max-width: 90px;"
+                    dense filled single-line
+                    class="cus-v-input"
+                    v-model="item['lesson_' + cItem.courseId]"
+                    @change="doUiAction('updateAttendanceStatus', {item, number: cItem.courseId, courseId: cItem.courseId})"
+                ></v-select>
+                <!-- 非正常出勤显示备注按钮 -->
+                <v-btn v-if="item['lesson_' + cItem.courseId] && item['lesson_' + cItem.courseId] !== '出勤'" icon
+                       @click="doUiAction('showRemark', {item, number: cItem.courseId, courseId: cItem.courseId})">
+                  <v-icon>mdi-comment-text-outline</v-icon>
+                </v-btn>
+              </div>
+            </template>
+
+            <!--表格底部右侧功能按钮-->
+            <template v-slot:footer.prepend>
+              <v-menu top offset-y :close-on-content-click="false">
+                <template v-slot:activator="{ on, attrs }">
+                  <v-btn v-bind="attrs" v-on="on" icon>
+                    <v-icon>mdi-menu</v-icon>
+                  </v-btn>
+                </template>
+                <v-list>
+                  <v-list-item>
+                    <v-switch v-model="showTableZebraLine" label="显示斑马纹" dense flat></v-switch>
+                  </v-list-item>
+                </v-list>
+              </v-menu>
+            </template>
+            <!--表格底部右侧分页-->
+            <template v-slot:footer.page-text="pagination">
+              <span>{{ pagination.pageStart }}-{{ pagination.pageStop }}</span>
+              <span class="ml-1">共{{ pagination.itemsLength }}条</span>
+            </template>
+
+          </v-data-table>
+        </v-card>
+      </v-container>
 
 
+      <v-dialog
+          v-model="isRemarkDialog"
+          width="500"
+      >
+        <v-card>
+          <v-card-title class="text-h5 grey lighten-2">
+            添加备注
+          </v-card-title>
+          <v-divider></v-divider>
+          <v-textarea v-model="editItem['remarks_' + editItem.lessonNumber]" color="success" class="cus-v-input" dense filled single-line></v-textarea>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn
+                :loading="isRemarkLoading"
+                class="ml-2"
+                color="primary"
+                text
+                @click="doUiAction('confirmUpdateAttendanceStatus')"
+            >
+              确定
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+      <!-- <<<<<<<<<<<<< 页面内容 -->
+    </div>
 
-<!-- 编辑抽屉 -->
-<v-navigation-drawer v-model="isEditDrawerShow" :permanent="isEditDrawerShow" fixed temporary right width="80%" class="elevation-24">
-  <v-form v-model="isFormValid" v-if="isEditDrawerShow" ref="form" lazy-validation>
-    <v-row class="pt-8">
-      <span class="title pa-6" :class="{'pl-12': !isMobile, 'pl-6': isMobile}">{{ batchData.isEdit ? '编辑出勤' : '新增出勤' }}</span>
-      <v-spacer></v-spacer>
-      <v-btn class="mt-6 elevation-0" :class="{'mr-16': !isMobile, 'mr-8': isMobile}" fab x-small @click="isEditDrawerShow = false">
-        <v-icon dark>mdi-close</v-icon>
+    <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+    <v-navigation-drawer v-model="isHelpPageDrawerShow" fixed temporary right width="80%" hide-overlay
+                         class="elevation-24">
+      <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#3.doUiAction.md`" width="100%"
+              height="100%"></iframe>
+
+      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn"
+             @click="isHelpPageDrawerShow = false">
+        <v-icon>mdi-close</v-icon>
       </v-btn>
-    </v-row>
-    <v-row :class="{'px-10': !isMobile, 'px-3': isMobile, 'pb-7': isMobile}">
-      <v-col cols="12" sm="12" md="4" xl="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-        <span class="inputLabel">课号</span>
-        <v-text-field :rules="requireRules" readonly class="cus-v-input " dense filled single-line v-model="batchData['lessonNumber']"></v-text-field>
-      </v-col>
-       
+    </v-navigation-drawer>
+    <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
+  </v-main>
+</v-app>
 
-      <v-col cols="12" sm="12" md="4" xl="4" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-        <span class="inputLabel">出勤日期</span>
-        <v-menu
-          v-model="isStartTimeMenuShow"
-          :close-on-content-click="false"
-          :nudge-right="40"
-          transition="scale-transition"
-          offset-y
-          min-width="auto"
-        >
-          <template v-slot:activator="{ on, attrs }">
-            <v-text-field
-              class="cus-v-input"
-              dense filled single-line
-              :rules="requireRules"
-              v-model="batchData['attendanceDate']"
-              label=""
-              v-bind="attrs"
-              v-on="on"
-              readonly
-            ></v-text-field>
-          </template>
-          <v-date-picker
-            v-model="batchData['attendanceDate']"
-            @input="isStartTimeMenuShow = false"
-          ></v-date-picker>
-        </v-menu>
-        
-      </v-col>
-       
-      <v-col cols="12" sm="12" md="12" xl="12" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
-        <span class="inputLabel">班级内学员</span>
-        <student-attendance-list :student="tableData" :lesson-number="batchData.lessonNumber" @change="attendanceBatchData = $event" />
-      </v-col>
-</v-row>
-<v-row class="justify-end mx-0 mt-8" :class="{'px-10': !isMobile, 'px-4': isMobile, 'mb-8': isMobile}">
-  <v-btn color="success" @click="doUiAction(batchData.isEdit ? 'doUpdateAttendance' : 'doCreateAttendance')">保存出勤</v-btn>
-  <v-btn class="ml-2" @click="isEditDrawerShow = false">取消</v-btn>
-</v-row>
+<jhToast/>
+<jhMask/>
+<jhConfirmDialog/>
 
-  </v-form>
-</v-navigation-drawer>
+</div>
+</script>
 
-<v-dialog
-      v-model="isRemarkDialog"
-      width="500"
-    >
-      <v-card>
-        <v-card-title class="text-h5 grey lighten-2">
-          添加备注
-        </v-card-title>
-        <v-divider></v-divider>
-        <v-textarea v-model="editItem['remarks_' + editItem.lessonNumber]"  color="success" class="cus-v-input" dense filled single-line></v-textarea>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
-            :loading="isRemarkLoading"
-            class="ml-2"
-            color="primary"
-            text
-            @click="doUiAction('confirmUpdateAttendanceStatus')"
-          >
-            确定
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-</jh-layout-v3>
+<div id="app">
+</div>
 
 {% endblock %}
 
-{% block vue_body %}
-{% include 'component/studentAttendanceList.html' %}
+{% block vueScript %}
+
+<!-- 加载页面组件 >>>>>>>>>>>>> -->
+{% include 'common/fixedTableHeightV4.html' %}
+<!-- <<<<<<<<<<<<< 加载页面组件 -->
+
 <script type="module">
 new Vue({
   el: '#app',
   template: '#app-template',
   vuetify: new Vuetify(),
   data: () => ({
+    breadcrumbs: window.breadcrumbs,
+    isHelpPageDrawerShow: false,
+    isMobile: window.innerWidth < 600,
+    showTableZebraLine: true,
     // 表格相关数据
     isFormValid: true,
-    requireRules: [
-      v => !!v || 'This is required',
-    ],
+    requireRules: [v => !!v || 'This is required'],
     constantCollection: {
       courseList: [],
-      attendanceStatus: [
-        '出勤',
-        '缺勤',
-        '迟到',
-        '早退',
-      ]
+      attendanceStatus: Object.freeze(['出勤', '缺勤', '迟到', '早退'])
     },
 
-    serverSearchInput: {
-      studentId: null,
-      classId: null
-    },
     searchInput: null,
     isTableLoading: true,
     tableDataFromBackend: [],
     headers: [
-      {text: "学生id", value: "studentId", width: 50}, 
+      {text: "学生id", value: "studentId", width: 50},
       {text: "学生名称", value: "studentName", width: 80},
     ],
-    isEditDrawerShow: false,
-    editItem: {},
-   
 
-    currentClickButton: {title: '新增', action: 'add'},
     editItem: {isEdit: false},
     isStartTimeMenuShow: false,
     groupAlbumList: [],
@@ -209,9 +205,7 @@ new Vue({
     attendanceBatchData: [],
   }),
   computed: {
-    isMobile() {
-      return window.innerWidth < 600;
-    },
+
     tableData() {
       return this.tableDataFromBackend;
     },
@@ -222,14 +216,15 @@ new Vue({
   watch: {},
   async created() {
     await this.doUiAction('getCourseList');
-    await this.doUiAction('refreshTableData');
+    await this.doUiAction('getTableData');
   },
-  mounted() {},
+  mounted() {
+  },
   methods: {
     async doUiAction(uiActionId, uiActionData) {
       switch (uiActionId) {
-        case 'refreshTableData':
-          await this.refreshTableData();
+        case 'getTableData':
+          await this.getTableData();
           break;
         case 'getCourseList':
           await this.getCourseList();
@@ -238,32 +233,11 @@ new Vue({
           await this.prepareBatchData(uiActionData);
           await this.openDetailDialog();
           break;
-        case 'startUpdateItem':
-          await this.prepareItemData(uiActionData);
-          await this.openUpdateDialog();
-          break;
-        case 'updateItem':
-          await this.prepareValidate();
-          await this.confirmUpdateItemDialog();
-          await this.doUpdateItem();
-          await this.closeDrawerShow();
-          await this.refreshTableData();
-          break;
         case 'confirmUpdateAttendanceStatus':
           await this.confirmUpdateAttendanceStatus(uiActionData);
           break;
         case 'updateAttendanceStatus':
           await this.updateAttendanceStatus(uiActionData);
-          break;
-        case 'doCreateAttendance':
-          await this.prepareValidate();
-          await this.doCreateAttendance();
-          await this.refreshTableData();
-          break;
-        case 'doUpdateAttendance':
-          await this.prepareValidate();
-          await this.doUpdateAttendance();
-          await this.refreshTableData();
           break;
         case 'showRemark':
           await this.showRemark(uiActionData);
@@ -271,24 +245,13 @@ new Vue({
       }
     },
     // =================================uiAction 公共方法 start ======================================
-    /**
-     * uiActionId:  prepareValidate
-     * description: ✅表单校验
-    */
-    async prepareValidate() {
-      if (this.$refs.form.validate() === false) {
-        window.vtoast.fail({ message: "输入有误, 请检查!" });
-        throw new Error("[prepareValidate] false");
-      }
-    },
 
     /**
-     * uiActionId:  refreshTableData
+     * uiActionId:  getTableData
      * description: ✅获取表格数据
-    */
-    async refreshTableData() {
+     */
+    async getTableData() {
       this.isTableLoading = true;
-      const serverSearchInput = _.pickBy(this.serverSearchInput, value=> !!value);
       const result = await window.jianghuAxios({
         data: {
           appData: {
@@ -296,12 +259,11 @@ new Vue({
             actionId: 'selectItemList',
             actionData: {},
             where: {},
-            whereLike: serverSearchInput,
             orderBy: [{column: 'operationAt', order: 'desc'}]
           }
         }
       });
-      const { rows } = result.data.appData.resultData;
+      const {rows} = result.data.appData.resultData;
 
       this.tableDataFromBackend = this.buildTableList(rows);
       this.isTableLoading = false;
@@ -319,29 +281,27 @@ new Vue({
           }
         }
       });
-      const { rows } = result.data.appData.resultData;
+      const {rows} = result.data.appData.resultData;
       this.constantCollection.courseList = rows;
       // 根据length 长度动态添加headers 列
-      rows.forEach((item, i)=> {
+      rows.forEach((item, i) => {
         this.headers.push(
-          {text: `第${i+1}课`, value: "lesson_" + item.courseId, width: 50, edit: false, required: false, courseName: item.courseName, courseId: item.courseId, index: i+1}
+            {text: `第${i + 1}课`, value: "lesson_" + item.courseId, width: 50, edit: false, required: false, courseName: item.courseName, courseId: item.courseId, index: i + 1}
         )
       })
-      
     },
     buildTableList(rows) {
       const list = [];
       const listByStudent = _.groupBy(rows, 'studentId');
-      const length = this.courseCount;
       for (const studentId in listByStudent) {
-        const { studentName, courseId, lessonNumber } = listByStudent[studentId][0];
+        const {studentName, courseId, lessonNumber} = listByStudent[studentId][0];
         const studentInfo = {
-            id: studentId + courseId + lessonNumber,
-            studentId,
-            studentName,
-            courseId
-          };
-        this.constantCollection.courseList.forEach((item, i)=> {
+          id: studentId + courseId + lessonNumber,
+          studentId,
+          studentName,
+          courseId
+        };
+        this.constantCollection.courseList.forEach((item, i) => {
           const courseId = item.courseId
           const studentLine = listByStudent[studentId].find(e => e.courseId == courseId);
           studentInfo['lesson_' + courseId] = studentLine ? studentLine.attendance : '';
@@ -354,58 +314,10 @@ new Vue({
       return list;
     },
 
-    /**
-     * uiActionId:  startCreateItem
-     * description: ✅获取表格数据
-    */
-    async clearItemData() {
-      this.addItem = {};
-    },
-
-    async closeDrawerShow() {
-      this.isEditDrawerShow = false;
-      this.isAddDrawerShow = false;
-    },
-
-    /**
-     * uiActionId:  startUpdateItem
-     * description: ✅获取表格数据
-    */
-    async prepareItemData({item}) {
-      this.editItem = {...item};
-    },
-    async openUpdateDialog() {
-      this.isEditDrawerShow = true;
-    },
     async openDetailDialog() {
-      this.isEditDrawerShow = true;
+      this.isRemarkDialog = true;
     },
-    /**
-     * uiActionId:  updateItem
-     * description: ✅获取表格数据
-    */
-    async confirmUpdateItemDialog() {
-      if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
-        throw new Error("取消");
-      }
-    },
-    async doUpdateItem() {
-      const { id, ...data } = this.editItem;
-      await window.vtoast.loading("修改数据");
-      await window.jianghuAxios({
-        data: {
-          appData: {
-            pageId: 'attendanceManagement',
-            actionId: 'updateItem',
-            actionData: data,
-            where: {id}
-          }
-        }
-      })
-      await window.vtoast.success("修改数据成功");
-    },
-
-    async prepareBatchData({item}) {
+    async prepareBatchData(item) {
       this.batchData = _.cloneDeep(item);
       // 判断批量新增 或 编辑
       const lessonNumber = this.batchData.value.split('_')[1];
@@ -414,27 +326,28 @@ new Vue({
       this.batchData.isEdit = this.tableDataFromBackend.some(e => e['lesson_' + lessonNumber] !== '');
       this.batchData.attendanceDate = dayjs().format('YYYY-MM-DD')
     },
-    async updateAttendanceStatus({ item, number, courseId }) {
+    async updateAttendanceStatus({item, number, courseId}) {
+      debugger
       const key = 'lesson_' + number
       const loadKey = 'loading_' + number
       const copyKey = 'copy_loading_' + number
 
       item[loadKey] = true;
-      const { studentId } = item
+      const {studentId} = item
       const attendance = item[key]
       if (attendance === '出勤') {
         this.isRemarkDialog = false
-        const { status } = (await window.jianghuAxios({
+        const {status} = (await window.jianghuAxios({
           data: {
             appData: {
               pageId: 'attendanceManagement',
               actionId: 'updateItem',
-              where: { courseId, studentId },
-              actionData: { attendance }
+              where: {courseId, studentId},
+              actionData: {attendance}
             }
           }
         })).data;
-        
+
         if (status === 'success') {
           window.vtoast.success("更新成功");
         } else {
@@ -449,7 +362,7 @@ new Vue({
       setTimeout(() => {
         item[loadKey] = false;
       }, 500)
-     
+
     },
     async showRemark({item, number: lessonNumber, courseId}) {
       this.editItem = item
@@ -458,49 +371,10 @@ new Vue({
       this.isRemarkDialog = true
     },
 
-    async doCreateAttendance() {
-      const { id, ...data } = this.batchData;
-      data.studentIdList = this.buildAttendanceStudentList(data.lessonNumber)
-      await window.vtoast.loading("新增出勤记录");
-      await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'attendanceManagement',
-              actionId: 'createAttendanceRecord',
-              actionData: data
-            }
-          }
-        });
-        await window.vtoast.success("新增出勤记录成功");
-        this.isEditDrawerShow = false
-    },
-    async doUpdateAttendance() {
-      const { id, ...data } = this.batchData;
-      data.studentIdList = this.buildAttendanceStudentList(data.lessonNumber)
-      await window.vtoast.loading("编辑出勤记录");
-      await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'attendanceManagement',
-              actionId: 'updateAttendanceRecord',
-              actionData: data
-            }
-          }
-        });
-        await window.vtoast.success("编辑出勤记录成功");
-        this.isEditDrawerShow = false
-    },
-    buildAttendanceStudentList(lessonNumber) {
-      return this.attendanceBatchData.map(item=> ({
-        id: item.studentId, 
-        attendance: item['lesson_' + lessonNumber],
-        remarks: item['remarks_' + lessonNumber]
-      }))
-    },
     async confirmUpdateAttendanceStatus() {
       this.isRemarkLoading = true;
-      const { studentId, courseId, lessonNumber } = this.editItem;
-      const { data: {status} } = await window.jianghuAxios({
+      const {studentId, courseId, lessonNumber} = this.editItem;
+      const {data: {status}} = await window.jianghuAxios({
         data: {
           appData: {
             pageId: "attendanceManagement",
