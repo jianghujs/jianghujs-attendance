@@ -3,159 +3,153 @@
 {% block vueTemplate %}
 
 <script type="text/html" id="app-template">
-<div>
-<v-app id="inspire" mobile-breakpoint="sm">
-  <jhMenu/>
-  <v-main class="d-flex flex-column" style="margin-top: 60px">
-    <!-- 头部内容 >>>>>>>>>>>>> -->
-    <div class="pageSecondBar d-flex px-8">
-      <div>
-        <div class="appTitle pt-3" style="font-size: 18px; font-weight: 700">{{ breadcrumbs[1].fullText }}
-          <!-- 帮助页按钮 -->
-          <v-icon @click="isHelpPageDrawerShow = true" small>mdi-help-circle-outline</v-icon>
-        </div>
-        <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
-      </div>
+    <div>
+        <v-app id="inspire" mobile-breakpoint="sm">
+            <jhMenu />
+            <v-main class="d-flex flex-column" style="margin-top: 60px">
+                <!-- 头部内容 >>>>>>>>>>>>> -->
+                <div class="pageSecondBar d-flex px-8">
+                    <div>
+                        <div class="appTitle pt-3" style="font-size: 18px; font-weight: 700">{{ breadcrumbs[1].fullText }}
+                            <!-- 帮助页按钮 -->
+                            <v-icon @click="isHelpPageDrawerShow = true" small>mdi-help-circle-outline</v-icon>
+                        </div>
+                        <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+                    </div>
+                </div>
+                <!-- <<<<<<<<<<<<< 头部内容 -->
+
+                <!-- 页面内容 >>>>>>>>>>>>> -->
+                <div class="pageBodyContainer px-8" style="flex: 1;">
+                    <!-- 页面主要内容 -->
+                    <v-container class="fullScreen d-flex flex-column pa-xs-0 pa-0">
+                        <v-card>
+                            <v-row class="ma-0 align-center flex-none pt-0 pa-4 pb-0">
+                                <!--新增按钮-->
+                                <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pl-0">
+                                    <span class="body-2">共{{ tableData.length }}条记录</span>
+                                </v-col>
+                                <v-spacer></v-spacer>
+                                <!--表格过滤-->
+                                <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="px-0 py-xs-0">
+                                    <v-text-field v-model="searchInput" color="success" prefix="表格过滤：" class="cus-v-input"
+                                        dense filled single-line></v-text-field>
+                                </v-col>
+                            </v-row>
+
+                            <v-data-table :headers="headers" hide-default-header :items="tableData" :search="searchInput"
+                                :search="searchInput"
+                                :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
+                                :items-per-page="20" mobile-breakpoint="0" :loading="isTableLoading"
+                                :class="{'zebraLine': showTableZebraLine }" checkbox-color="success" fixed-header
+                                class="fixed-table-height elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
+                                <template slot="header" :headers="headers">
+                                    <thead>
+                                        <tr>
+                                            <th v-if="!header.value.includes('lesson')" v-for="header in headers"
+                                                :key="header.text">
+                                                {{ header.text }}
+                                            </th>
+                                            <th v-else :key="header.text">
+                                                <span :title="header.courseName"
+                                                    @click="doUiAction('viewCourseDetail', header)"
+                                                    style="cursor:pointer; font-weight: bold;color: black">{{
+                                                    header.courseName }}</span>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                </template>
+
+                                <template v-for="(cItem, index) in constantCollection.courseList"
+                                    :slot="'item.lesson_' + cItem.courseId" slot-scope="{ item }">
+                                    <div class="d-flex align-center">
+                                        <v-select :loading="item['loading_' + cItem.courseId]"
+                                            :disabled="item['loading_' + cItem.courseId]"
+                                            v-if="item['lesson_' + cItem.courseId]"
+                                            :items="constantCollection.attendanceStatus"
+                                            style="width: 90px; max-width: 90px;" dense filled single-line
+                                            class="cus-v-input" v-model="item['lesson_' + cItem.courseId]"
+                                            @change="doUiAction('updateAttendanceStatus', {item, number: cItem.courseId, courseId: cItem.courseId})"></v-select>
+                                        <!-- 非正常出勤显示备注按钮 -->
+                                        <v-btn
+                                            v-if="item['lesson_' + cItem.courseId] && item['lesson_' + cItem.courseId] !== '出勤'"
+                                            icon
+                                            @click="doUiAction('showRemark', {item, number: cItem.courseId, courseId: cItem.courseId})" small>
+                                            <v-icon small>mdi-comment-text-outline</v-icon>
+                                        </v-btn>
+                                    </div>
+                                </template>
+
+                                <!--表格底部右侧功能按钮-->
+                                <template v-slot:footer.prepend>
+                                    <v-menu top offset-y :close-on-content-click="false">
+                                        <template v-slot:activator="{ on, attrs }">
+                                            <v-btn v-bind="attrs" v-on="on" icon>
+                                                <v-icon>mdi-menu</v-icon>
+                                            </v-btn>
+                                        </template>
+                                        <v-list>
+                                            <v-list-item>
+                                                <v-switch v-model="showTableZebraLine" label="显示斑马纹" dense flat></v-switch>
+                                            </v-list-item>
+                                        </v-list>
+                                    </v-menu>
+                                </template>
+                                <!--表格底部右侧分页-->
+                                <template v-slot:footer.page-text="pagination">
+                                    <span>{{ pagination.pageStart }}-{{ pagination.pageStop }}</span>
+                                    <span class="ml-1">共{{ pagination.itemsLength }}条</span>
+                                </template>
+                            </v-data-table>
+                        </v-card>
+                    </v-container>
+
+                    <!-- 备注弹窗 -->
+                    <v-dialog v-model="isRemarkDialog" width="500">
+                        <v-card>
+                            <v-card-title>
+                                <div class="d-flex justify-space-between align-center" style="width: 100%;">
+                                    <div style="font-size: 16px;">添加备注</div>
+                                    <div>
+                                        <v-btn class="elevation-0" fab x-small @click="isRemarkDialog = false">
+                                            <v-icon dark>mdi-close</v-icon>
+                                        </v-btn>
+                                    </div>
+                                </div>
+                            </v-card-title>
+                            <v-card-text class="mt-1 pb-0">
+                                <v-textarea v-model="editItem['remarks_' + editItem.lessonNumber]" color="success"
+                                    class="cus-v-input" dense filled single-line></v-textarea>
+                            </v-card-text>
+                            <v-card-actions class="justify-end py-4 px-6">
+                                <v-btn color="success" :loading="isRemarkLoading" @click="doUiAction('confirmUpdateAttendanceStatus')" small>确定</v-btn>
+                                <v-btn class="ml-2" @click="isRemarkDialog = false" small>取消</v-btn>
+                            </v-card-actions>
+                        </v-card>
+                    </v-dialog>
+                </div>
+                <!-- <<<<<<<<<<<<< 页面内容 -->
+
+                <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+                <v-navigation-drawer v-model="isHelpPageDrawerShow" fixed temporary right width="80%"
+                    class="elevation-24">
+                    <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#3.attendanceManagement.md`" width="100%"
+                        height="100%"></iframe>
+
+                    <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn"
+                        @click="isHelpPageDrawerShow = false">
+                        <v-icon>mdi-close</v-icon>
+                    </v-btn>
+                </v-navigation-drawer>
+                <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
+            </v-main>
+        </v-app>
+
+        <jhToast />
+        <jhMask />
+        <jhConfirmDialog />
+
     </div>
-    <!-- <<<<<<<<<<<<< 头部内容 -->
-    <!-- 页面主要内容 -->
-    <div class="pageBodyContainer px-8" style="flex: 1;">
-      <!-- 页面内容 >>>>>>>>>>>>> -->
-      <v-container class="fullScreen d-flex flex-column pa-xs-0 pa-0">
-        <v-card>
-          <v-row class="ma-0 pa-xs-4 align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
-
-            <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pl-0">
-
-              <span class="body-2">共{{ tableData.length }}条记录</span>
-            </v-col>
-
-            <v-spacer></v-spacer>
-
-            <v-col cols="12" xs="3" sm="3" md="2" xl="2" class="pa-xs-0 pa-xs-2 col-sm-8-flex">
-              <v-text-field v-model="searchInput" label="表格过滤" class="cus-v-input" dense filled single-line></v-text-field>
-            </v-col>
-          </v-row>
-          <v-data-table :headers="headers"
-                        hide-default-header
-                        :items="tableData"
-                        :search="searchInput"
-                        :search="searchInput" :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
-                        :items-per-page="20"
-                        mobile-breakpoint="0"
-                        :loading="isTableLoading"
-                        :class="{'zebraLine': showTableZebraLine }"
-                        checkbox-color="success"
-                        fixed-header
-                        class="fixed-table-height elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
-
-            <template slot="header" :headers="headers">
-              <thead>
-              <tr>
-                <th v-if="!header.value.includes('lesson')" v-for="header in headers" :key="header.text">
-                  {{ header.text }}
-                </th>
-                <th v-else :key="header.text">
-                  <span :title="header.courseName" @click="doUiAction('viewCourseDetail', header)" style="cursor:pointer; font-weight: bold;color: black">{{ header.courseName }}</span>
-                </th>
-              </tr>
-              </thead>
-            </template>
-
-            <template v-for="(cItem, index) in constantCollection.courseList" :slot="'item.lesson_' + cItem.courseId" slot-scope="{ item }">
-              <div class="d-flex">
-                <v-select
-                    :loading="item['loading_' + cItem.courseId]"
-                    :disabled="item['loading_' + cItem.courseId]"
-                    v-if="item['lesson_' + cItem.courseId]"
-                    :items="constantCollection.attendanceStatus"
-                    style="width: 90px; max-width: 90px;"
-                    dense filled single-line
-                    class="cus-v-input"
-                    v-model="item['lesson_' + cItem.courseId]"
-                    @change="doUiAction('updateAttendanceStatus', {item, number: cItem.courseId, courseId: cItem.courseId})"
-                ></v-select>
-                <!-- 非正常出勤显示备注按钮 -->
-                <v-btn v-if="item['lesson_' + cItem.courseId] && item['lesson_' + cItem.courseId] !== '出勤'" icon
-                       @click="doUiAction('showRemark', {item, number: cItem.courseId, courseId: cItem.courseId})">
-                  <v-icon>mdi-comment-text-outline</v-icon>
-                </v-btn>
-              </div>
-            </template>
-
-            <!--表格底部右侧功能按钮-->
-            <template v-slot:footer.prepend>
-              <v-menu top offset-y :close-on-content-click="false">
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn v-bind="attrs" v-on="on" icon>
-                    <v-icon>mdi-menu</v-icon>
-                  </v-btn>
-                </template>
-                <v-list>
-                  <v-list-item>
-                    <v-switch v-model="showTableZebraLine" label="显示斑马纹" dense flat></v-switch>
-                  </v-list-item>
-                </v-list>
-              </v-menu>
-            </template>
-            <!--表格底部右侧分页-->
-            <template v-slot:footer.page-text="pagination">
-              <span>{{ pagination.pageStart }}-{{ pagination.pageStop }}</span>
-              <span class="ml-1">共{{ pagination.itemsLength }}条</span>
-            </template>
-
-          </v-data-table>
-        </v-card>
-      </v-container>
-
-
-      <v-dialog
-          v-model="isRemarkDialog"
-          width="500"
-      >
-        <v-card>
-          <v-card-title class="text-h5 grey lighten-2">
-            添加备注
-          </v-card-title>
-          <v-divider></v-divider>
-          <v-textarea v-model="editItem['remarks_' + editItem.lessonNumber]" color="success" class="cus-v-input" dense filled single-line></v-textarea>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn
-                :loading="isRemarkLoading"
-                class="ml-2"
-                color="primary"
-                text
-                @click="doUiAction('confirmUpdateAttendanceStatus')"
-            >
-              确定
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-      <!-- <<<<<<<<<<<<< 页面内容 -->
-    </div>
-
-    <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
-    <v-navigation-drawer v-model="isHelpPageDrawerShow" fixed temporary right width="80%" hide-overlay
-                         class="elevation-24">
-      <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#3.doUiAction.md`" width="100%"
-              height="100%"></iframe>
-
-      <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn"
-             @click="isHelpPageDrawerShow = false">
-        <v-icon>mdi-close</v-icon>
-      </v-btn>
-    </v-navigation-drawer>
-    <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
-  </v-main>
-</v-app>
-
-<jhToast/>
-<jhMask/>
-<jhConfirmDialog/>
-
-</div>
 </script>
 
 <div id="app">
