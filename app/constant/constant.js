@@ -5,24 +5,25 @@ module.exports.tableEnum = Object.freeze({
   _cache: "_cache",
   _constant: "_constant",
   _constant_ui: "_constant_ui",
-  _app: "_app",
-  _file: "_file",
   _group: "_group",
   _page: "_page",
-  _resource: "_resource",
-  _resource_request_log: "_resource_request_log",
   _record_history: "_record_history",
+  _resource: "_resource",
   _role: "_role",
+  _test_case: "_test_case",
+  _ui: "_ui",
   _user: "_user",
-  _user_app: "_user_app",
-  _view_user_app: "_view02_user_app",
   _user_group_role: "_user_group_role",
   _user_group_role_page: "_user_group_role_page",
   _user_group_role_resource: "_user_group_role_resource",
   _user_session: "_user_session",
   // ========================业务表============================
   attendance:"attendance",
-
+  course:"course",
+  student:"student",
+  // ========================基础 View============================
+  _view01_user: "_view01_user",
+  view01_student_attendance: "view01_student_attendance",
 });
 
 module.exports.categoryPublishStatusEnum = Object.freeze({

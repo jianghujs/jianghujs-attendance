@@ -1,6 +1,14 @@
-# jianghujs_attendance
+# jianghujs-attendance
+## 数据库配置
 
-## 配置
+```sql
+# 数据库初始化
+create database `jianghujs_attendance` default character set utf8mb4 collate utf8mb4_bin;
+use jianghujs_attendance;
+# 运行 sql/init.sql 文件
+```
+
+## 代码配置
 
 1. npm install
 2. 复制 `config.local.example.js` 为 `config.local.js`
@@ -13,29 +21,7 @@
    database: 'jianghujs_attendance'
    ```
 4. 启动 npm run dev
-   
-## 数据库
-
-```sql
-# 数据库初始化
-create database `jianghujs_attendance` default character set utf8mb4 collate utf8mb4_bin;
-use jianghujs_attendance;
-# 运行 sql/init.sql 文件
-```
 
 ## 测试账号 & 测试环境
 
 - admin/123456
-
-## 页面
-
-1. 应用协议: frontendDemo.html
-   * 增删改查（select，insert，softUpdate，softDelete）
-
-## FAQ
-
-- egg-jianghu mysql view
-```sql
-DROP VIEW IF EXISTS `_view01_user`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `_view01_user` AS select * from `_user`;
-```

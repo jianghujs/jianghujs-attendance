@@ -1,6 +1,6 @@
 {
   "name": "jianghujs_attendance",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "",
   "private": true,
   "egg": {
@@ -8,13 +8,11 @@
     "framework": "@jianghujs/jianghu"
   },
   "dependencies": {
-    "@jianghujs/jianghu": "4.0.3",
+    "@jianghujs/jianghu": "4.0.19",
     "egg": "^2.15.1",
     "egg-scripts": "^2.11.0"
   },
   "devDependencies": {
-    "autod": "^3.0.1",
-    "autod-egg": "^1.1.0",
     "egg-bin": "^4.11.0",
     "egg-mock": "^3.21.0",
     "eslint": "^7.32.0",
@@ -29,19 +27,16 @@
     "stop": "egg-scripts stop --title=jianghujs_attendance",
     "dev": "egg-bin dev --port=7001",
     "debug": "egg-bin debug",
-    "jianghuConfigImportData": "jianghu jianghuConfigImportData",
-    "jianghuConfigDumpData": "jianghu jianghuConfigDumpData",
     "test": "npm run lint -- --fix && npm run test-local",
     "test-local": "egg-bin test",
     "cov": "egg-bin cov",
     "lint": "eslint .",
-    "ci": "npm run lint && npm run cov",
-    "autod": "autod"
+    "ci": "npm run lint && npm run cov"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/jianghujs/jianghujs_attendance.git"
   },
-  "author": "",
-  "license": "MIT"
+  "author": "jianghujs.org",
+  "license": "Apache-2.0"
 }

@@ -1,0 +1,417 @@
+{% extends 'template/jhTemplateV4.html'%}
+
+{% block vueTemplate %}
+
+<script type="text/html" id="app-template">
+  <div>
+    <v-app mobile-breakpoint="sm">
+      <jh-menu />
+      <v-main class="mt-15">
+        <!-- 头部内容 >>>>>>>>>>>>> -->
+        <div class="jh-page-second-bar px-8">
+          <div class="pt-3 text-h7 font-weight-bold">出勤列表
+            <!-- 帮助页按钮 -->
+            <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline</v-icon>
+          </div>
+          <v-breadcrumbs class="pb-3 pt-0 px-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+        </div>
+        <!-- <<<<<<<<<<<<< 头部内容 -->
+  
+        <div class="jh-page-body-container px-8">
+          <!-- 页面内容 >>>>>>>>>>>>> -->
+          <v-card class="rounded-lg">
+            <v-row class="ma-0 pa-4">
+              <v-spacer></v-spacer>
+              <!-- 搜索过滤 -->
+              <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
+                <v-text-field color="success" v-model="searchInput" prefix="搜索：" class="jh-v-input" dense
+                  filled single-line></v-text-field>
+              </v-col>
+            </v-row>
+            <!-- 表格 -->
+            <v-data-table :headers="headers" :items="tableData" :search="searchInput"
+              :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
+              :items-per-page="-1" mobile-breakpoint="0" :loading="isTableLoading"
+              checkbox-color="success" fixed-header :class="{'zebraLine': isTableZebraLineShown }"
+              class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
+              <!-- header -->
+              <template slot="header" :headers="headers">
+                <thead>
+                  <tr>
+                    <th v-if="!header.value.includes('lesson')" v-for="header in headers" :key="header.text"> {{ header.text }} </th>
+                    <th v-else :key="header.text">
+                        <span :title="header.courseName" style="cursor:pointer; font-weight: bold;color: black">
+                          {{ header.courseName }}
+                        </span>
+                    </th>
+                  </tr>
+                </thead>
+              </template>
+              <!-- 内容 -->
+              <template v-for="(course, index) in courseList"
+                :slot="'item.lesson_' + course.courseId" slot-scope="{ item }">
+                <div class="d-flex align-center">
+                  <v-select :loading="item['loading_' + course.courseId]"
+                    :disabled="item['loading_' + course.courseId]"
+                    v-if="item['lesson_' + course.courseId]"
+                    :items="constantObj.attendanceStatus"
+                    style="width: 90px; max-width: 90px;" dense filled single-line
+                    class="jh-v-input" v-model="item['lesson_' + course.courseId]"
+                    @change="doUiAction('updateItem', {item, lessonNumber: course.courseId, courseId: course.courseId})"></v-select>
+                  <!-- 非正常出勤显示备注按钮 -->
+                  <v-btn
+                    v-if="item['lesson_' + course.courseId] && item['lesson_' + course.courseId] !== '出勤'"
+                    icon
+                    @click="doUiAction('startRemark', {item, lessonNumber: course.courseId, courseId: course.courseId})" small>
+                    <v-icon small>mdi-comment-text-outline</v-icon>
+                  </v-btn>
+                </div>
+              </template>
+              <!-- 没有数据 -->
+              <template v-slot:loading>
+                <div class="jh-no-data">数据加载中</div>
+              </template>
+              <template v-slot:no-data>
+                <div class="jh-no-data">暂无数据</div>
+              </template>
+              <template v-slot:no-results>
+                <div class="jh-no-data">暂无数据</div>
+              </template>
+              <!-- 表格分页 -->
+              <template v-slot:footer.page-text="pagination">
+                <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+                <span class="ml-1">共{{pagination.itemsLength}}条</span>
+              </template>
+            </v-data-table>
+          </v-card>
+          <!-- <<<<<<<<<<<<< 页面内容 -->
+  
+          <!-- 备注弹窗 -->
+          <v-dialog v-model="isRemarkDialogShown" width="500">
+            <v-card>
+              <v-card-title>
+                <div class="d-flex justify-space-between align-center" style="width: 100%;">
+                  <div style="font-size: 16px;">添加备注</div>
+                  <div>
+                    <v-btn class="elevation-0" fab x-small @click="isRemarkDialogShown = false">
+                      <v-icon dark>mdi-close</v-icon>
+                    </v-btn>
+                  </div>
+                </div>
+              </v-card-title>
+              <v-card-text class="mt-1 pb-0">
+                <v-form ref="remarkForm" lazy-validation>
+                  <v-textarea v-model="updateItem['remarks_' + updateLessonNumber]"
+                    class="jh-v-input" dense single-line filled :rules="validationRules.requireRules"></v-textarea>
+                </v-form>
+              </v-card-text>
+              <v-card-actions class="justify-end py-4 px-6">
+                <v-btn color="success" @click="doUiAction('doRemark')"
+                  small>确定</v-btn>
+                <v-btn class="ml-2" @click="isRemarkDialogShown = false" small>取消</v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+        </div>
+  
+        <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+        <v-navigation-drawer v-model="isHelpPageDrawerShown" v-click-outside="drawerClickOutside" fixed temporary
+          right width="80%" class="elevation-24">
+          <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#3.attendanceList.md`" width="100%"
+            height="100%"></iframe>
+  
+          <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn"
+            @click="isHelpPageDrawerShown = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-navigation-drawer>
+        <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
+  
+      </v-main>
+    </v-app>
+  
+    <jh-toast />
+    <jh-mask />
+    <jh-confirm-dialog />
+  
+  </div>
+</script>
+
+<div id="app">
+</div>
+
+
+{% endblock %}
+
+{% block vueScript %}
+
+<!-- 加载页面组件 >>>>>>>>>>>>> -->
+{% include 'common/jianghuJs/fixedTableHeightV4.html' %}
+<!-- <<<<<<<<<<<<< 加载页面组件 -->
+
+<script type="module">
+  new Vue({
+    el: '#app',
+    template: '#app-template',
+    vueComponent: 'page',
+    vuetify: new Vuetify(),
+    data: {
+      isMobile: window.innerWidth < 500,
+
+      // 面包屑
+      breadcrumbs: [
+        {
+          text: '首页',
+          disabled: true,
+        },
+        {
+          text: '出勤列表',
+          disabled: true,
+        }
+      ],
+      isHelpPageDrawerShown: false,
+      
+      // 下拉项
+      constantObj: {
+        attendanceStatus: Object.freeze(['出勤', '缺勤', '迟到', '早退'])
+      },
+
+      // 表格相关数据
+      isTableZebraLineShown: true,
+      validationRules: {
+        requireRules: [
+          v => !!v || 'This is required',
+        ],
+      },
+      searchInput: null,
+      isTableLoading: true,
+      tableData: [],
+      headers: [
+        {text: "学生id", value: "studentId", width: 50},
+        {text: "学生名称", value: "studentName", width: 80},
+      ],
+      courseList: [],
+
+      // 操作相关      
+      isRemarkDialogShown: false,
+      updateItem: {},
+      updateLessonNumber: null,
+      updateCourseId: null,
+      updateStudentId: null,
+      updateAttendance: null,
+      updateRemarks: null,
+    },
+    watch: {},
+    async created() {
+      await this.doUiAction('prepareData');
+      await this.doUiAction('getTableData');
+    },
+    mounted() {},
+    methods: {
+      async doUiAction(uiActionId, uiActionData) {
+        switch (uiActionId) {
+          case 'prepareData':
+            await this.getCourseList();
+            await this.setTableHeader();
+            break;
+          case 'getTableData':
+            await this.getTableData();
+            await this.formatTableData();
+            break;
+          case 'updateItem':
+            await this.prepareDoUpdateItem(uiActionData);
+            await this.prepareUpdateValidate();
+            await this.doUpdateItem();
+            await this.clearUpdateItem();
+            await this.doUiAction('getTableData');
+            break;
+          case 'startRemark':
+            await this.prepareDoUpdateItem(uiActionData);
+            await this.openRemarkDialog();
+            break;
+          case 'doRemark':
+            await this.prepareRemarkValidate();
+            await this.prepareDoRemark();
+            await this.doRemark();
+            await this.closeRemarkDialog();
+            await this.doUiAction('getTableData');
+            break;
+          default:
+            console.error("[doUiAction] uiActionId not find", { uiActionId });
+            break;
+        }
+      },
+
+      // ---------- prepareData uiAction >>>>>>>>>> --------
+      async getCourseList() {
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'attendanceList',
+              actionId: 'selectCourseList',
+              actionData: {},
+              where: {},
+              orderBy: [{column: 'operationAt', order: 'asc'}]
+            }
+          }
+        });
+        this.courseList = result.data.appData.resultData.rows;
+      },
+      async setTableHeader() {
+        this.courseList.forEach((item, i) => {
+          this.headers.push(
+              {text: `第${i + 1}课`, value: "lesson_" + item.courseId, width: 50, edit: false, required: false, courseName: item.courseName, courseId: item.courseId, index: i + 1}
+          )
+        })
+      },
+      // ---------- <<<<<<<<<<< prepareData uiAction  --------
+     
+      // ---------- 获取数据 uiAction >>>>>>>>>> --------
+      async getTableData() {
+        this.isTableLoading = true;
+        const result = await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'attendanceList',
+              actionId: 'selectItemList',
+              actionData: {},
+              where: {},
+              orderBy: [{ column: 'operationAt', order: 'desc' }]
+            }
+          }
+        });
+        this.tableData = result.data.appData.resultData.rows;
+        this.isTableLoading = false;
+      },
+      formatTableData() {
+        const list = [];
+        const listGroupByStudent = _.groupBy(this.tableData, 'studentId');
+
+        for (const studentId in listGroupByStudent) {
+          const {studentName, courseId, lessonNumber} = listGroupByStudent[studentId][0];
+          const studentInfo = {
+            id: studentId + courseId + lessonNumber,
+            studentId,
+            studentName,
+            courseId
+          };
+          this.courseList.forEach((item, i) => {
+            const courseId = item.courseId
+            const studentLine = listGroupByStudent[studentId].find(e => e.courseId == courseId);
+            studentInfo['lesson_' + courseId] = studentLine ? studentLine.attendance : '';
+            studentInfo['copy_lesson_' + courseId] = studentInfo['lesson_' + courseId];
+            studentInfo['loading_' + courseId] = false;
+            studentInfo['remarks_' + courseId] = studentLine ? studentLine.remarks : '';
+          })
+          list.push(studentInfo);
+        }
+
+        this.tableData = list;
+      },
+      // ---------- <<<<<<<<<<< 获取数据 uiAction  --------
+
+      // ---------- 修改数据公共方法 >>>>>>>>>>>> --------
+      async prepareDoUpdateItem(funObj) {
+        const { item, lessonNumber, courseId } = funObj;
+        this.updateItem = _.cloneDeep(item);
+        this.updateLessonNumber = lessonNumber;
+        this.updateCourseId = courseId;
+        this.updateStudentId = item.studentId;
+        this.updateAttendance = item['lesson_' + lessonNumber];
+      },
+      // ---------- <<<<<<<<<<< 修改数据公共方法  --------
+
+      // ---------- 修改数据 uiAction >>>>>>>>>>>> --------
+      async prepareUpdateValidate() {
+        if (this.updateAttendance !== '出勤') {
+          this.doUiAction('startRemark', {item: this.updateItem, lessonNumber: this.updateLessonNumber, courseId: this.updateCourseId})
+          throw new Error("[doUpdateItem] break");
+        }
+      },
+      async doUpdateItem() {
+        await window.jhMask.show();
+        await window.vtoast.loading("修改数据");
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'attendanceList',
+              actionId: 'updateItem',
+              where: {
+                courseId: this.updateCourseId, 
+                studentId:  this.updateStudentId,
+                lessonNumber: this.updateLessonNumber
+              },
+              actionData: {
+                remarks: null,
+                attendance: this.updateAttendance
+              }
+            }
+          }
+        });
+
+        await window.jhMask.hide();
+        await window.vtoast.success("修改数据成功");
+      },
+      async clearUpdateItem() {
+        this.updateItem = {};
+        this.updateLessonNumber = null;
+        this.updateCourseId = null;
+        this.updateStudentId = null;
+        this.updateAttendance = null;
+      },
+      // ---------- <<<<<<<<<<< 修改数据 uiAction  --------
+
+      // ---------- 备注 uiAction >>>>>>>>>> --------
+      async openRemarkDialog() {
+        this.isRemarkDialogShown = true;
+      },
+      async prepareRemarkValidate() {
+        if (await this.$refs.remarkForm.validate()) {
+          return true;
+        }
+        throw new Error("请完善表单信息")
+      },
+      async prepareDoRemark() {
+        this.updateRemarks = this.updateItem['remarks_' + this.updateLessonNumber]
+      },
+      async doRemark() {
+        await window.jhMask.show();
+        await window.vtoast.loading("修改数据");
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'attendanceList',
+              actionId: 'updateItem',
+              where: {
+                courseId: this.updateCourseId, 
+                studentId:  this.updateStudentId,
+                lessonNumber: this.updateLessonNumber
+              },
+              actionData: {
+                remarks: this.updateRemarks,
+                attendance: this.updateAttendance
+              }
+            }
+          }
+        });
+
+        await window.jhMask.hide();
+        await window.vtoast.success("修改数据成功");
+      },
+      async closeRemarkDialog() {
+        this.isRemarkDialogShown = false;
+        this.updateItem = {};
+        this.updateLessonNumber = null;
+        this.updateCourseId = null;
+        this.updateStudentId = null;
+        this.updateAttendance = null;
+        this.updateRemarks = null;
+      },
+      // ---------- <<<<<<<<<<< 备注 uiAction  --------
+    }
+  })
+</script>
+
+<style scoped>
+</style>
+{% endblock %}
